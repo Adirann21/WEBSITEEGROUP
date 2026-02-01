@@ -15,10 +15,6 @@ Route::get('/', function () {
 })->name('home');
 
 // Static pages
-Route::get('/reserve', function () {
-    return view('reserve');
-})->name('reserve');
-
 Route::get('/calendar', function () {
     return view('calendar');
 })->name('calendar');
@@ -54,10 +50,10 @@ Route::middleware('guest')->group(function () {
 */
 
 Route::middleware('auth')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // Reserve page (Dashboard) - requires login
+    Route::get('/reserve', function () {
+        return view('reserve');
+    })->name('reserve');
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

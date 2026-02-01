@@ -20,17 +20,23 @@ class AuthController extends Controller
 
     /**
      * Handle login request
+     * Uses email_hash for lookup since email is AES encrypted
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        // Find user by email hash (since email is encrypted)
+        $emailHash = hash('sha256', strtolower($request->email));
+        $user = User::where('email_hash', $emailHash)->first();
+
+        if ($user && Hash::check($request->password, $user->password)) {
+            Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+            return redirect()->intended('/reserve');
         }
 
         return back()->withErrors([
@@ -48,24 +54,35 @@ class AuthController extends Controller
 
     /**
      * Handle registration request
+     * Password is hashed with bcrypt, name and email are AES encrypted
      */
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
+        // Check if email already exists using hash
+        $emailHash = hash('sha256', strtolower($request->email));
+        if (User::where('email_hash', $emailHash)->exists()) {
+            return back()->withErrors([
+                'email' => 'This email is already registered.',
+            ])->onlyInput('email', 'name');
+        }
+
+        // Create user - name and email will be AES encrypted by the model
+        // Password will be hashed with bcrypt
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
         Auth::login($user);
 
-        return redirect('/dashboard');
+        return redirect('/reserve');
     }
 
     /**
