@@ -1,14 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application.
-|
 */
 
 // Home page
@@ -16,16 +14,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Authentication routes
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
-
-Route::get('/signup', function () {
-    return view('auth.register');
-})->name('register');
-
-// Other pages (you can create these later)
+// Static pages
 Route::get('/reserve', function () {
     return view('reserve');
 })->name('reserve');
@@ -42,6 +31,34 @@ Route::get('/contact', function () {
     return view('contact');
 })->name('contact');
 
-// Handle form submissions (add your controller logic later)
-// Route::post('/login', [AuthController::class, 'login']);
-// Route::post('/register', [AuthController::class, 'register']);
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes (Guest only)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('guest')->group(function () {
+    // Login
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+
+    // Register
+    Route::get('/signup', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/signup', [AuthController::class, 'register']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Protected Routes (Auth required)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});

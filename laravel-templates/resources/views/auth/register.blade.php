@@ -23,6 +23,21 @@
                 @csrf
                 
                 <div class="space-y-2">
+                    <label for="name" class="block text-sm text-gray-700">Full Name</label>
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        required
+                        class="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                        value="{{ old('name') }}"
+                    >
+                    @error('name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div class="space-y-2">
                     <label for="email" class="block text-sm text-gray-700">Email</label>
                     <input
                         id="email"
